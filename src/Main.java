@@ -50,7 +50,7 @@ public class Main {
             //now we need to write code in the output file, need to put all the codes in place and write the whole map object
             ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(compressedFile));
             //see CompressionInfoFolder for fields
-            CompressionInfoFolder holder = new CompressionInfoFolder(codeToWord, codedText.toByteArray());
+            CompressionInfoHolder holder = new CompressionInfoHolder(codeToWord, codedText.toByteArray());
             writer.writeObject(holder);
             writer.flush();//write it to the disk, buffer when its not completely filled, need to force flush
             writer.close();
@@ -59,12 +59,23 @@ public class Main {
             //reading an obj from the file
             ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(compressedFile));
             Object inputObject = inputStream.readObject();
-            if(inputObject instanceof CompressionInfoFolder){
-
-            }else{
-                throw new CompressionException("Unexpected type received, programm expects "+CompressionInfoFolder.class.getCanonicalName());
+            if(!(inputObject instanceof CompressionInfoHolder)) {
+                throw new CompressionException("Unexpected type received, programm expects " + CompressionInfoHolder.class.getCanonicalName());
             }
+                CompressionInfoHolder inputHolder = (CompressionInfoHolder) inputObject;//need to cast, inputholder has a map and bytes arr
+                //need to write the decoded resul into file but it wont be writing obj into file, but text into file
+            //writer thats putting the data that we decompressed
+            BufferedWriter decompressingWriter = new BufferedWriter(new FileWriter(decompressedFile));
+            byte [] codedBytes = inputHolder.getCodedtext();
+            for (int i = 0; i <codedBytes.length; i+=2) {
+                //the byte that we read and we need to shift it back
+                short high = codedBytes[i];
+                //we go over 2 bytes all the time, every itteration
+                short low = codedBytes[i+1];
+                //the code that we want to get is short code
+                short code = (short) ((high<<8)+low);
 
+            }
         } catch (FileNotFoundException e) {
             //wrote myself
             System.err.println("Sorry we couldn't find a file " + inputFile);
