@@ -6,6 +6,8 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws CompressionException {
+        //every word that we had had to be replaced by two bytes, twice as many bytes as number of words
+
         String inputFile = "data/shakespeare.txt";
         String compressedFile = inputFile + ".sc";
         String decompressedFile = compressedFile + ".txt";
@@ -19,7 +21,15 @@ public class Main {
 
             Map<String, Short> wordsToCode = new HashMap<>();
             Map<Short, String> codeToWord = new HashMap<>();
-            short codeCounter = 0;
+            //must assign code to a new line if we want to write lines from the new line
+            short newLineCode = 0;
+
+            //we need to understand line
+            wordsToCode.put(System.lineSeparator(), newLineCode);
+            codeToWord.put(newLineCode, System.lineSeparator());
+
+            short codeCounter = (short) (newLineCode + 1);
+            int totalNumOfWords = 0;
             String line = reader.readLine();
 
             while (line != null) {
@@ -35,6 +45,7 @@ public class Main {
                         byte low = (byte) codeCounter; //everything else bigger than 1 byte is just cut off
                         codedText.write(high);//when decompressing will be reading from high to low
                         codedText.write(low);
+                        totalNumOfWords++;
 
                         codeCounter++;
                         if (codeCounter == Short.MAX_VALUE) {
@@ -44,6 +55,10 @@ public class Main {
                     //System.out.println(w);
                 }
                 //System.out.println();
+                codedText.write(0);
+                codedText.write(0);
+                //whenevr we put a word-we count it
+                totalNumOfWords++;
                 line = reader.readLine();
             }
 
@@ -54,39 +69,16 @@ public class Main {
             writer.writeObject(holder);
             writer.flush();//write it to the disk, buffer when its not completely filled, need to force flush
             writer.close();
-            System.out.println("Numb of words found " + codeCounter);
-            //now we need to read outputFile .sc and put it into outputText file
-            //reading an obj from the file
-            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(compressedFile));
-            Object inputObject = inputStream.readObject();
-            if (!(inputObject instanceof CompressionInfoHolder)) {
-                throw new CompressionException("Unexpected type received, programm expects " + CompressionInfoHolder.class.getCanonicalName());
-            }
-            CompressionInfoHolder inputHolder = (CompressionInfoHolder) inputObject;//need to cast, inputholder has a map and bytes arr
-            //need to write the decoded resul into file but it wont be writing obj into file, but text into file
-            //writer thats putting the data that we decompressed
-            BufferedWriter decompressingWriter = new BufferedWriter(new FileWriter(decompressedFile));
-            byte[] codedBytes = inputHolder.getCodedtext();
-            for (int i = 0; i < codedBytes.length; i += 2) {
-                //the byte that we read and we need to shift it back
-                short high = codedBytes[i];
-                //we go over 2 bytes all the time, every itteration
-                short low = codedBytes[i + 1];
-                //the code that we want to get is short code
-                short code = (short) ((high << 8) + low);
+            System.out.println("Numb of unique words found " + codeCounter);
+            System.out.println("Numb of total words found " + codeCounter);
+            // here was decompressor file
 
-                String word = inputHolder.getCodeToWord().get(code);
-                if (word != null) decompressingWriter.write(word);
-
-            }
         } catch (FileNotFoundException e) {
             //wrote myself
             System.err.println("Sorry we couldn't find a file " + inputFile);
         } catch (IOException e) {
             System.err.println("Sorry, error occured during reading " + inputFile + " error " + e);
             e.printStackTrace(); //whenever we write an obj, each of obj has to be serializable
-        } catch (ClassNotFoundException e) {
-            throw new CompressionException(e);
         }
     }
 }
