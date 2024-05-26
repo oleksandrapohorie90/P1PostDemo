@@ -7,7 +7,8 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) throws CompressionException {
         String inputFile = "data/shakespeare.txt";
-        String outputFile = inputFile +".sc";
+        String compressedFile = inputFile +".sc";
+        String decompressedFile = compressedFile +".txt";
         try {
             //reade the file - next to put words into code, we need the Map bc key is unique, to avoid repeated words
             BufferedReader reader = new BufferedReader(new FileReader(inputFile));
@@ -47,19 +48,31 @@ public class Main {
             }
 
             //now we need to write code in the output file, need to put all the codes in place and write the whole map object
-            ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(outputFile));
+            ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(compressedFile));
             //see CompressionInfoFolder for fields
             CompressionInfoFolder holder = new CompressionInfoFolder(codeToWord, codedText.toByteArray());
             writer.writeObject(holder);
             writer.flush();//write it to the disk, buffer when its not completely filled, need to force flush
-
+            writer.close();
             System.out.println("Numb of words found "+codeCounter);
+            //now we need to read outputFile .sc and put it into outputText file
+            //reading an obj from the file
+            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(compressedFile));
+            Object inputObject = inputStream.readObject();
+            if(inputObject instanceof CompressionInfoFolder){
+
+            }else{
+                throw new CompressionException("Unexpected type received, programm expects "+CompressionInfoFolder.class.getCanonicalName());
+            }
+
         } catch (FileNotFoundException e) {
             //wrote myself
             System.err.println("Sorry we couldn't find a file " + inputFile);
         } catch (IOException e) {
             System.err.println("Sorry, error occured during reading " + inputFile + " error " + e);
             e.printStackTrace(); //whenever we write an obj, each of obj has to be serializable
+        } catch (ClassNotFoundException e) {
+            throw new CompressionException(e);
         }
     }
 }
