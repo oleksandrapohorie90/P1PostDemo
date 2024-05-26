@@ -14,6 +14,7 @@ public class Main {
 
             //now we need to write code in the output file, need to put all the codes in place and write the whole map object
             ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(outputFile));
+            //we need this for byte, to put it into Stream
 
             Map<String, Short> wordsToCode = new HashMap<>();
             Map<Short, String> codeToWord = new HashMap<>();
@@ -38,6 +39,7 @@ public class Main {
                 System.out.println();
                 line = reader.readLine();
             }
+            System.out.println("Numb of words found "+codeCounter);
         } catch (FileNotFoundException e) {
             //wrote myself
             System.err.println("Sorry we couldn't find a file " + inputFile);
