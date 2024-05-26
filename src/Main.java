@@ -12,9 +12,9 @@ public class Main {
             //reade the file - next to put words into code, we need the Map bc key is unique, to avoid repeated words
             BufferedReader reader = new BufferedReader(new FileReader(inputFile));
 
-            //now we need to write code in the output file, need to put all the codes in place and write the whole map object
-            ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(outputFile));
             //we need this for byte, to put it into Stream
+            ByteArrayOutputStream codedText = new ByteArrayOutputStream();
+
 
             Map<String, Short> wordsToCode = new HashMap<>();
             Map<Short, String> codeToWord = new HashMap<>();
@@ -29,22 +29,37 @@ public class Main {
 
                         wordsToCode.put(w,codeCounter);
                         codeToWord.put(codeCounter,w);
+                        //using byte operations in place
+                        byte high = (byte) (codeCounter >>> 8); //shifting byte by 8, need to cast since it was short
+                        byte low = (byte)codeCounter; //everything else bigger than 1 byte is just cut off
+                        codedText.write(high);//when decompressing will be reading from high to low
+                        codedText.write(low);
+
                         codeCounter++;
                         if(codeCounter==Short.MAX_VALUE){
                             throw new CompressionException("There are too many words in the file");
                         }
                     }
-                    System.out.println(w);
+                    //System.out.println(w);
                 }
-                System.out.println();
+                //System.out.println();
                 line = reader.readLine();
             }
+
+            //now we need to write code in the output file, need to put all the codes in place and write the whole map object
+            ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(outputFile));
+            //see CompressionInfoFolder for fields
+            CompressionInfoFolder holder = new CompressionInfoFolder(codeToWord, codedText.toByteArray());
+            writer.writeObject(holder);
+            writer.flush();//write it to the disk, buffer when its not completely filled, need to force flush
+
             System.out.println("Numb of words found "+codeCounter);
         } catch (FileNotFoundException e) {
             //wrote myself
             System.err.println("Sorry we couldn't find a file " + inputFile);
         } catch (IOException e) {
             System.err.println("Sorry, error occured during reading " + inputFile + " error " + e);
+            e.printStackTrace(); //whenever we write an obj, each of obj has to be serializable
         }
     }
 }
