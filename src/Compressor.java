@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Main {
+public class Compressor {
     public static void main(String[] args) throws CompressionException {
         //every word that we had had to be replaced by two bytes, twice as many bytes as number of words
 
