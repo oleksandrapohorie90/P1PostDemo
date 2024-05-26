@@ -38,6 +38,6 @@ public class Decompressor {
 
         //
         System.out.println("Compressed file had "+(codedBytes.length/2)+ " words");
-        System.out.println("Compressed file had "+(inputHolder.getCodeToWord().size() + " words"));
+        System.out.println("Compressed file had "+(inputHolder.getCodeToWord().size() + " words")) ;
     }
 }

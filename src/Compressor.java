@@ -34,24 +34,29 @@ public class Compressor {
 
             while (line != null) {
                 String[] words = line.split("(?<=\\s)|(?=\\s)");
+
+
+                totalNumOfWords += words.length;
+
+                //from the beginning we were only putting the words that dont exist but if they exist we should put those words too
                 for (String w : words) {
                     Short existingCode = wordsToCode.get(w);
                     if (existingCode == null) {
-
                         wordsToCode.put(w, codeCounter);
                         codeToWord.put(codeCounter, w);
-                        //using byte operations in place
-                        byte high = (byte) (codeCounter >>> 8); //shifting byte by 8, need to cast since it was short
-                        byte low = (byte) codeCounter; //everything else bigger than 1 byte is just cut off
-                        codedText.write(high);//when decompressing will be reading from high to low
-                        codedText.write(low);
-                        totalNumOfWords++;
-
+                        existingCode = codeCounter;
                         codeCounter++;
                         if (codeCounter == Short.MAX_VALUE) {
                             throw new CompressionException("There are too many words in the file");
                         }
                     }
+                    //writing should be done for all words no mater the code
+                    //using byte operations in place
+                    byte high = (byte) (existingCode >>> 8); //shifting byte by 8, need to cast since it was short
+                    byte low = existingCode.byteValue(); //everything else bigger than 1 byte is just cut off
+                    codedText.write(high);//when decompressing will be reading from high to low
+                    codedText.write(low);
+
                     //System.out.println(w);
                 }
                 //System.out.println();

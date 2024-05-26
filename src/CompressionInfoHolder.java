@@ -2,8 +2,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 public class CompressionInfoHolder implements Serializable {
-
-
+    //this num should be unique
+    private static final long serialVersionVID = 56565L;
     private final Map<Short, String> codeToWord;
     private final byte[] codedtext;
     Map<Short, String> codeMap;
